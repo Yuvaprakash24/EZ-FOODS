@@ -12,12 +12,12 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Badge from '@mui/material/Badge';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { getAuth, signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-
+import { getAuth, signOut, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
 const pages = [
   { label: 'Menu', link: '/menu' },
@@ -38,16 +38,47 @@ function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const auth = getAuth();
-  const [name, setName] = React.useState({ displayName: '', photoURL: '' });
+  const db = getFirestore();
+  const navigate = useNavigate();
+  const [user, setUser] = React.useState(null);
   const [cartQuantity, setCartQuantity] = React.useState(0);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        createUserProfile(currentUser);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
+
+  const createUserProfile = async (user) => {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      try {
+        await setDoc(userRef, {
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          phoneNumber: '',
+          address: '',
+          // Add any other fields you want in the profile
+        });
+        console.log("User profile created successfully");
+      } catch (error) {
+        console.error("Error creating user profile:", error);
+      }
+    }
+  };
 
   const signup = () => {
     signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        setName({ displayName: user.displayName, photoURL: user.photoURL });
-        localStorage.setItem("user", JSON.stringify(user));
-      })
       .catch((error) => {
         console.log(error.message);
       });
@@ -55,8 +86,7 @@ function ResponsiveAppBar() {
 
   const logout = () => {
     signOut(auth).then(() => {
-      localStorage.removeItem('user');
-      setName({ displayName: '', photoURL: '' });
+      navigate('/');
     }).catch((error) => {
       console.log(error);
     });
@@ -90,26 +120,6 @@ function ResponsiveAppBar() {
   };
 
   React.useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const name = JSON.parse(storedUser);
-      setName({ displayName: name.displayName, photoURL: name.photoURL });
-    }
-    // updateCartQuantity(); // Initial cart quantity check
-
-    // // Set up a storage event listener to update cart quantity
-    // const handleStorageChange = (event) => {
-    //   if (event.key === 'cart') {
-    //     updateCartQuantity();
-    //   }
-    // };
-
-    // window.addEventListener('storage', handleStorageChange);
-
-    // // Clean up the event listener on unmount
-    // return () => {
-    //   window.removeEventListener('storage', handleStorageChange);
-    // };
     updateCartQuantity(); // Initial cart quantity check
 
     // Set up event listeners
@@ -187,7 +197,7 @@ function ResponsiveAppBar() {
                   </Typography>
                 </MenuItem>
               ))}
-              {name.displayName && (
+              {user && user.email === "yuvaprakashsai@gmail.com" && (
               <Button
                 key="AdminDashboard"
                 component={Link}
@@ -231,7 +241,7 @@ function ResponsiveAppBar() {
                 {page.label}
               </Button>
             ))}
-            {name.displayName && (
+            {user && user.displayName === "yuva prakash sai gunupuru" && (
               <Button
                 key="AdminDashboard"
                 component={Link}
@@ -243,7 +253,7 @@ function ResponsiveAppBar() {
               </Button>
             )}
           </Box>
-          {name.displayName ? (
+          {user ? (
             <div style={{ display: "flex" }}>
               <IconButton aria-label="cart" style={{ marginRight: "15px" }}>
                 <StyledBadge badgeContent={cartQuantity} color="error">
@@ -253,7 +263,7 @@ function ResponsiveAppBar() {
               <Box sx={{ flexGrow: 0 }}>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt={name.displayName} src={name.photoURL} />
+                    <Avatar alt={user.displayName} src={user.photoURL} />
                   </IconButton>
                 </Tooltip>
                 <Menu
@@ -272,14 +282,17 @@ function ResponsiveAppBar() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleCloseUserMenu}>
+                  <MenuItem onClick={()=>{handleCloseUserMenu();navigate('/profile');}}>
                     <Typography textAlign="center">Profile</Typography>
                   </MenuItem>
-                  <MenuItem onClick={handleCloseUserMenu}>
+                  {/* <MenuItem onClick={handleCloseUserMenu}>
                     <Typography textAlign="center">Account</Typography>
                   </MenuItem>
                   <MenuItem onClick={handleCloseUserMenu}>
                     <Typography textAlign="center">Dashboard</Typography>
+                  </MenuItem> */}
+                  <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/contact'); }}>
+                    <Typography textAlign="center">Assistance</Typography>
                   </MenuItem>
                   <MenuItem onClick={handleCloseUserMenu}>
                     <Button onClick={logout} variant='contained' size='medium' color="error">LOGOUT</Button>

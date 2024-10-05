@@ -147,7 +147,7 @@ const Ez_Menu = () => {
       <div className='menu__container'>
         <Typography variant='h4' component="h3">Menu</Typography><br />
         <div className='menu__properties'>
-          <Box sx={{ minWidth: 120, mr: { lg: '2rem' } }}>
+          <Box sx={{ minWidth: 120, mr: { lg: '2rem', md: '2rem' } }}>
             <FormControl fullWidth>
               <InputLabel id="demo-simple-select-label">Category</InputLabel>
               <Select
@@ -165,7 +165,7 @@ const Ez_Menu = () => {
               </Select>
             </FormControl>
           </Box>
-          <FormControlLabel onChange={setv} value={Veg} sx={{ mr: { lg: '2rem' } }} control={<Switch />} label="Vegetarian Only" />
+          <FormControlLabel onChange={setv} value={Veg} sx={{ mr: { lg: '2rem', md: '2rem' } }} control={<Switch />} label="Vegetarian Only" />
           <TextField onChange={searching} value={search} label="Search by Name" />
         </div>
       </div>

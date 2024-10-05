@@ -2,17 +2,20 @@ import { Typography, Card,CardContent,CardMedia } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import CreateIcon from '@mui/icons-material/Create';
-import Icon from '@mui/material/Icon';
 import { useEffect, useState } from "react"
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import AddItemForm from "./AddItemForm";
 import AddIcon from '@mui/icons-material/Add';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const Admin_Dashboard = () => {
+  const [email, setEmail] = useState("");
   const [foods,setFoods] = useState([]);
   const [showForm,setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState(null);
+  const adminaccessusers =['yuvaprakashsai@gmail.com'];
+
   const fetchFood = async () => {
     let foodArray = [];
     const querySnapshot = await getDocs(collection(db, "foods")); 
@@ -42,13 +45,26 @@ const Admin_Dashboard = () => {
     setEditingItem(null);
   }
 
+  
 
   useEffect(()=>{
     fetchFood();
+    // Listen for authentication state changes
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setEmail(user.email); // Set the user email once it's available
+      } else {
+        setEmail(""); // Reset email if no user is logged in
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener when component unmounts
   },[]);
   return (
     <div style={{marginTop:"25px"}}>
       <Typography variant="h4" style={{textAlign:"center"}}>Admin Dashboard</Typography>
+      {adminaccessusers.includes(email) ?
+      <>
       <div className="menu__items__list">
         {
           foods.map((item)=>{
@@ -98,6 +114,9 @@ const Admin_Dashboard = () => {
           item={editingItem} 
         />
       )}
+      </>:
+      <Typography variant="h5" style={{textAlign:'center',padding: '3vh 4vw'}}>Sorry! You have no access for Admin Dashboard. If, it's wrong please contact the admin <a href="mailto:yuvaprakashsai@gmail.com">yuvaprakashsai@gmail.com</a></Typography>
+    }
     </div>
   )
 }
