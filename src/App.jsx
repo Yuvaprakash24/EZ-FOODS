@@ -8,6 +8,7 @@ import Cart from './components/Cart'
 import Success from './components/Success'
 import Cancel from './components/Cancel'
 import UserProfile from './components/UserProfile'
+import OrderHistory from './components/OrderHistory'
 
 const App = () => {
   return (
@@ -23,7 +24,8 @@ const App = () => {
         <Route path='/cart' element={<Cart/>}/>
         <Route path='/success' element={<Success/>}/>
         <Route path='/cancel' element={<Cancel/>}/>
-        <Route path="/profile" element={<UserProfile />} />
+        <Route path='/profile' element={<UserProfile />} />
+        <Route path='/order-history' element={<OrderHistory />} />
       </Routes>
     </BrowserRouter>
     </>

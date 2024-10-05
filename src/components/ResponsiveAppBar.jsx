@@ -287,10 +287,10 @@ function ResponsiveAppBar() {
                   </MenuItem>
                   {/* <MenuItem onClick={handleCloseUserMenu}>
                     <Typography textAlign="center">Account</Typography>
-                  </MenuItem>
-                  <MenuItem onClick={handleCloseUserMenu}>
-                    <Typography textAlign="center">Dashboard</Typography>
                   </MenuItem> */}
+                  <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/order-history');}}>
+                    <Typography textAlign="center">Order History</Typography>
+                  </MenuItem>
                   <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/contact'); }}>
                     <Typography textAlign="center">Assistance</Typography>
                   </MenuItem>
