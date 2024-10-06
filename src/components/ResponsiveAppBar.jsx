@@ -86,6 +86,8 @@ function ResponsiveAppBar() {
 
   const logout = () => {
     signOut(auth).then(() => {
+      localStorage.removeItem('cart');
+      window.dispatchEvent(new Event('cartUpdated'));
       navigate('/');
     }).catch((error) => {
       console.log(error);
