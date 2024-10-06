@@ -1,7 +1,8 @@
 import { Typography, Box, FormControl, InputLabel, Select, MenuItem, Switch, Button, CardMedia, FormControlLabel, TextField, Card, CardContent } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from "firebase/firestore";
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
+import { onAuthStateChanged } from "firebase/auth";
 import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -101,19 +102,30 @@ const Ez_Menu = () => {
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
+  const [user, setUser] = useState(null); // Replace with actual user data or context
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+  
+    return () => unsubscribe(); // Cleanup the listener on component unmount
+  }, []);
   const setCount = (item) => {
-    const currentItem = cart[item.name] || { ...item, quantity: 0 };
-    if (currentItem.quantity + 1 > item.stock) {
-      alert(`Can't add more than ${item.stock} units of ${item.name}.`);
+    if (user) { // Check if the user is logged in
+      const currentItem = cart[item.name] || { ...item, quantity: 0 };
+      if (currentItem.quantity + 1 > item.stock) {
+        alert(`Can't add more than ${item.stock} units of ${item.name}.`);
+      } else {
+        const newCart = {
+          ...cart,
+          [item.name]: { ...currentItem, quantity: currentItem.quantity + 1 },
+        };
+        updateCartAndNotify(newCart);
+      }
     } else {
-      const newCart = {
-        ...cart,
-        [item.name]: { ...currentItem, quantity: currentItem.quantity + 1 },
-      };
-      updateCartAndNotify(newCart);
+      alert("Please log in to add items to the cart.");
     }
   };
-
   const subCount = (item) => {
     const currentItem = cart[item.name];
     if (!currentItem) return;
